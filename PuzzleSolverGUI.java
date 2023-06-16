@@ -92,8 +92,14 @@ public class PuzzleSolverGUI extends JFrame {
         comeco = System.currentTimeMillis();
         int astarVisitedStates = EightPuzzleSolver.aStarSearch(initialBoard, goalBoard);
         fim = System.currentTimeMillis() - comeco;
-        resultTextArea.append("Numero de nodes visitados A*: " + astarVisitedStates +"\n");
-        resultTextArea.append("Tempo de execucao  A*: " + fim +"ms\n");
+        resultTextArea.append("Numero de nodes visitados A*  Distancia de Manhattan: " + astarVisitedStates +"\n");
+        resultTextArea.append("Tempo de execucao  A* Distancia de Manhattan: " + fim +"ms\n");
+
+          comeco = System.currentTimeMillis();
+        int astarVisitedStates2 = EightPuzzleSolver.aStarSearch2(initialBoard, goalBoard);
+        fim = System.currentTimeMillis() - comeco;
+        resultTextArea.append("Numero de nodes visitados A* Peças Deslocadas: " + astarVisitedStates2 +"\n");
+        resultTextArea.append("Tempo de execucao  A* Peças Deslocadas:  " + fim +"ms\n");
 
         comeco = System.currentTimeMillis();
         int dfsVisitedStates = EightPuzzleSolver.dfsSearch(initialBoard, goalBoard);

@@ -1,33 +1,19 @@
 import java.util.*;
 
 public class EightPuzzleSolver {
-    // public static void main(String[] args) {
-    //     int[][] initialBoard = {
-    //         {1, 2, 3},
-    //         {5, 0, 7},
-    //         {4, 6, 8}
-    //     };
+    public static void main(String[] args) {
+        int[][] initialBoard = {{1, 2, 3}, {5, 0, 7}, {4, 6, 8}};
+        int[][] goalBoard = {{1, 2, 3}, {8, 0, 4}, {7, 6, 5}};
 
-    //     int[][] goalBoard = {
-    //         {1, 2, 3},
-    //         {8, 0, 4},
-    //         {7, 6, 5}
-    //     };
+        int astarVisitedStates = aStarSearch(initialBoard, goalBoard);
+        int dfsVisitedStates = dfsSearch(initialBoard, goalBoard);
+        int bfsVisitedStates = bfsSearch(initialBoard, goalBoard);
 
-    //     int astarVisitedStates = aStarSearch(initialBoard, goalBoard);
-    //     // System.out.println("A* Search - Visited States: " + astarVisitedStates);
+        System.out.println("A* Search - Visited States: " + astarVisitedStates);
+        System.out.println("DFS Search - Visited States: " + dfsVisitedStates);
+        System.out.println("BFS Search - Visited States: " + bfsVisitedStates);
+    }
 
-    //     int dfsVisitedStates = dfsSearch(initialBoard, goalBoard);
-    //     // System.out.println("DFS Search - Visited States: " + dfsVisitedStates);
-
-    //     int bfsVisitedStates = bfsSearch(initialBoard, goalBoard);
-    //     System.out.println("DFS Search - Visited States: " + dfsVisitedStates);
-    //     System.out.println("xd");
-    //     System.out.println("A* Search - Visited States: " + astarVisitedStates);
-    //     System.out.println("BFS Search - Visited States: " + bfsVisitedStates);
-    // }
-
-    // Heuristic function for A* search (Manhattan distance)
     public static int calculateHeuristic(int[][] board, int[][] goalBoard) {
         int distance = 0;
         for (int i = 0; i < board.length; i++) {
@@ -43,19 +29,77 @@ public class EightPuzzleSolver {
         return distance;
     }
 
-    // A* Search
+    public static int calculateHeuristic2(int[][] board, int[][] goalBoard) {
+        int misplacedTiles = 0;
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (board[i][j] != goalBoard[i][j]) {
+                    misplacedTiles++;
+                }
+            }
+        }
+        return misplacedTiles;
+    }
+
     public static int aStarSearch(int[][] initialBoard, int[][] goalBoard) {
         int visitedStates = 0;
         PriorityQueue<Node> openList = new PriorityQueue<>(Comparator.comparingInt(n -> n.fScore));
         Set<Node> closedList = new HashSet<>();
 
-        Node initialNode = new Node(initialBoard, null, 0, calculateHeuristic(initialBoard, goalBoard));
+        Node initialNode =
+                new Node(initialBoard, null, 0, calculateHeuristic(initialBoard, goalBoard));
         openList.add(initialNode);
 
         while (!openList.isEmpty()) {
             Node current = openList.poll();
             closedList.add(current);
-            visitedStates++; 
+            visitedStates++;
+
+            if (Arrays.deepEquals(current.board, goalBoard)) {
+                printSolutionPath(current);
+                return visitedStates;
+            }
+
+            List<Node> neighbors = generateNeighbors(current);
+            for (Node neighbor : neighbors) {
+                if (closedList.contains(neighbor)) {
+                    continue;
+                }
+
+                int gScore = current.gScore + 1;
+                boolean isNewPath = false;
+
+                if (!openList.contains(neighbor)) {
+                    openList.add(neighbor);
+                    isNewPath = true;
+                } else if (gScore < neighbor.gScore) {
+                    isNewPath = true;
+                }
+
+                if (isNewPath) {
+                    neighbor.previous = current;
+                    neighbor.gScore = gScore;
+                    neighbor.fScore = gScore + calculateHeuristic(neighbor.board, goalBoard);
+                }
+            }
+        }
+
+        System.out.println("No solution found!");
+        return visitedStates;
+    }
+    public static int aStarSearch2(int[][] initialBoard, int[][] goalBoard) {
+        int visitedStates = 0;
+        PriorityQueue<Node> openList = new PriorityQueue<>(Comparator.comparingInt(n -> n.fScore));
+        Set<Node> closedList = new HashSet<>();
+
+        Node initialNode =
+                new Node(initialBoard, null, 0, calculateHeuristic2(initialBoard, goalBoard));
+        openList.add(initialNode);
+
+        while (!openList.isEmpty()) {
+            Node current = openList.poll();
+            closedList.add(current);
+            visitedStates++;
 
             if (Arrays.deepEquals(current.board, goalBoard)) {
                 printSolutionPath(current);
@@ -90,7 +134,6 @@ public class EightPuzzleSolver {
         return visitedStates;
     }
 
-    // DFS Search
     public static int dfsSearch(int[][] initialBoard, int[][] goalBoard) {
         int visitedStates = 0;
         Stack<Node> stack = new Stack<>();
@@ -102,7 +145,7 @@ public class EightPuzzleSolver {
         while (!stack.isEmpty()) {
             Node current = stack.pop();
             visited.add(current);
-            visitedStates++; 
+            visitedStates++;
 
             if (Arrays.deepEquals(current.board, goalBoard)) {
                 printSolutionPath(current);
@@ -121,7 +164,6 @@ public class EightPuzzleSolver {
         return visitedStates;
     }
 
-    // BFS Search
     public static int bfsSearch(int[][] initialBoard, int[][] goalBoard) {
         int visitedStates = 0;
         Queue<Node> queue = new LinkedList<>();
@@ -133,7 +175,7 @@ public class EightPuzzleSolver {
         while (!queue.isEmpty()) {
             Node current = queue.poll();
             visited.add(current);
-            visitedStates++; 
+            visitedStates++;
 
             if (Arrays.deepEquals(current.board, goalBoard)) {
                 printSolutionPath(current);
@@ -147,18 +189,16 @@ public class EightPuzzleSolver {
                 }
             }
         }
-        
+
         System.out.println("No solution found!");
         return visitedStates;
     }
 
-    // Generate neighboring nodes for a given node
     public static List<Node> generateNeighbors(Node node) {
         int[][] board = node.board;
         int zeroRow = -1;
         int zeroCol = -1;
 
-        // Find the position of the zero tile
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 if (board[i][j] == 0) {
@@ -170,9 +210,7 @@ public class EightPuzzleSolver {
         }
 
         List<Node> neighbors = new ArrayList<>();
-
-        // Generate neighbors by swapping the zero tile with its adjacent tiles
-        int[][] moves = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Up, Down, Left, Right
+        int[][] moves = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
         for (int[] move : moves) {
             int newRow = zeroRow + move[0];
@@ -190,16 +228,13 @@ public class EightPuzzleSolver {
         return neighbors;
     }
 
-    // Check if a position is valid on the board
     public static boolean isValidPosition(int row, int col, int numRows, int numCols) {
         return row >= 0 && row < numRows && col >= 0 && col < numCols;
     }
 
-    // Clone a 2D board
     public static int[][] cloneBoard(int[][] board) {
         int numRows = board.length;
         int numCols = board[0].length;
-
         int[][] clone = new int[numRows][numCols];
 
         for (int i = 0; i < numRows; i++) {
@@ -211,14 +246,12 @@ public class EightPuzzleSolver {
         return clone;
     }
 
-    // Swap tiles on the board
     public static void swapTiles(int[][] board, int row1, int col1, int row2, int col2) {
         int temp = board[row1][col1];
         board[row1][col1] = board[row2][col2];
         board[row2][col2] = temp;
     }
 
-    // Print the solution path
     public static void printSolutionPath(Node node) {
         List<Node> path = new ArrayList<>();
         Node current = node;
@@ -235,7 +268,6 @@ public class EightPuzzleSolver {
         }
     }
 
-    // Print the board
     public static void printBoard(int[][] board) {
         for (int[] row : board) {
             for (int num : row) {
@@ -246,7 +278,6 @@ public class EightPuzzleSolver {
         System.out.println();
     }
 
-    // Node class to represent a state in the puzzle
     public static class Node {
         int[][] board;
         Node previous;
@@ -277,5 +308,4 @@ public class EightPuzzleSolver {
             return Arrays.deepHashCode(this.board);
         }
     }
-
 }
